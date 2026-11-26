@@ -40,8 +40,6 @@ The converter is modelled in two environments:
 │   └── projectendetret.asc      # LTspice open-loop circuit of the charger
 ├── simulink/
 │   └── UC2_fixed.slx            # Simulink closed-loop model with CC-CV controller
-├── results/                     # Simulation plots (see Results)
-├── docs/                        # Reference paper notes, design calculations
 └── README.md
 ```
 
@@ -61,28 +59,6 @@ The converter is modelled in two environments:
 1. Open MATLAB and navigate to the `simulink/` folder.
 2. Open `UC2_fixed.slx`. This is the full circuit with the dual-loop CC-CV controller.
 3. Run the model and open the scopes to view input voltage, input current, output voltage and output current.
-
-## Results
-
-Simulation waveforms from the closed-loop Simulink model and the open-loop LTspice model:
-
-| Waveform | Plot |
-|---|---|
-| Input voltage | `results/input_voltage.png` |
-| Input current | `results/input_current.png` |
-| Output voltage | `results/output_voltage.png` |
-| Output current | `results/output_current.png` |
-
-<!-- Replace the table above with embedded images once the plots are added, e.g.:
-![Input voltage and current](results/input_voltage_current.png)
--->
-
-### Reference paper results (for comparison)
-
-The reference paper reports the following figures for its own prototype. These are **the paper's results, not results of this project**:
-
-- Peak efficiency of 95.6%
-- Third-harmonic reduction of 86% and 76% (as reported in the paper)
 
 ## Tools Used
 
