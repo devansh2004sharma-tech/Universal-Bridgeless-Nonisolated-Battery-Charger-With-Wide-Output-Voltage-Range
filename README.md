@@ -1,36 +1,88 @@
 # Universal Bridgeless Nonisolated Battery Charger with Wide Output Voltage Range
 
-Open-loop LTspice and closed-loop MATLAB/Simulink simulation of a 1.5 kW universal bridgeless nonisolated battery charger for EV on-board charging, with a dual-loop CC-CV controller.
+Open-loop LTspice and closed-loop MATLAB/Simulink simulation of a 1.5 kW universal bridgeless nonisolated battery charger for EV on-board charging, with a dual-loop CC-CV controller and active harmonic minimization (AHM).
 
-Based on: S. Karneddi and D. Ronanki, *Universal Bridgeless Nonisolated Battery Charger with Wide Output Voltage Range*, IEEE Transactions on Power Electronics, 2023.
+Based on: H. Karneddi and D. Ronanki, *Universal Bridgeless Nonisolated Battery Charger With Wide-Output Voltage Range*, IEEE Transactions on Power Electronics, vol. 38, no. 3, March 2023.
 
 ---
 
 ## Overview
 
-Battery chargers for electric vehicles must accept a wide range of grid voltages and charge battery packs across a wide voltage window, while drawing clean, near-unity power factor current from the supply. This project studies and simulates a bridgeless, nonisolated charger topology that supports:
+Electric vehicles use battery packs of different voltages and are charged from different grid supplies around the world, so each vehicle normally needs its own charger. This project simulates a single charger that handles both ends of that range:
 
-- Universal AC input, 85-265 V at 50/60 Hz
-- Wide DC output range, 48-450 V
+- Universal single-phase AC input, 85-265 V at 50/60 Hz
+- Battery voltage range of 48-450 V
 - Rated power of 1.5 kW
-- Switching frequency of 40 kHz
-- Constant-current / constant-voltage (CC-CV) charging using a dual-loop controller with an AHM filter
+- Unity power factor and sinusoidal input current, with no front-end diode bridge
+- No galvanic isolation (a nonisolated design), which removes the transformer and saves losses and volume
 
 The converter is modelled in two environments:
 
-- **LTspice:** open-loop circuit model of the power stage, used to study the converter's switching behaviour and waveforms without a controller.
-- **MATLAB/Simulink:** the complete closed-loop model of the charger, including the dual-loop CC-CV controller with AHM filter, for regulated charging operation.
+- **LTspice:** open-loop circuit model of the power stage, used to study switching behaviour and waveforms without a controller.
+- **MATLAB/Simulink:** the complete closed-loop model, including the dual-loop CC-CV controller, for regulated charging.
 
-## Design Specifications
+## Design Specifications and Component Values
 
 | Parameter | Value |
 |---|---|
-| Rated power | 1.5 kW |
-| Input voltage | 85-265 V AC, 50/60 Hz |
-| Output voltage | 48-450 V DC |
+| Input supply | 1-phase, 85-265 V |
+| Supply frequency | 50/60 Hz ± 1% |
+| Maximum power | 1.5 kW |
+| Output voltage | 48-450 V |
 | Switching frequency | 40 kHz |
-| Control scheme | Dual-loop CC-CV with AHM filter |
-| Topology | Bridgeless, nonisolated |
+| Output voltage ripple | 20% |
+| Boost inductor L1 | 0.5 mH |
+| Buck inductor L2 | 0.4 mH |
+| Capacitor C1 | 44 µF |
+| Output capacitor Co | 0.475 mF |
+| Holding time (t_hold) | 20 ms |
+| Mode transition band (Δv) | 1 V |
+
+## Topology and Operating Modes
+
+The charger uses three pairs of semiconductor devices (S1-S6) with L1, L2, C1 and the output capacitor Co.
+
+- S3 and S4 switch at line frequency. The remaining switches operate at the 40 kHz switching frequency.
+- S1-S4 with L1 form a boost-derived AC-DC converter. S5, S6, C1 and L2 form the buck stage.
+- The operating mode follows the instantaneous input and battery voltages:
+  - **Boost mode:** input voltage is below the battery voltage. The C1-L2 arm acts as an output filter and reduces ripple.
+  - **Buck mode:** input voltage is above the battery voltage. The boost inductor L1 acts as an input filter.
+  - **Transition mode:** a small band around the battery voltage where the converter runs at unity gain for a smooth changeover.
+- Overall duty cycle: `d_charger = d_buck * (1 - d_boost)`
+
+## Control Strategy
+
+The controller has a common outer loop and separate inner current loops for boost and buck operation.
+
+- **Outer loops:** a CC (battery current) loop and a CV (battery voltage) loop generate the reference for the inner loop.
+- **Inner loops:** distinct boost and buck current controllers regulate the input current and keep the power factor at unity.
+- **Active harmonic minimization (AHM):** the second-order power ripple on the output capacitor puts a third-harmonic component in the reference current. A band-stop filter removes it, with unity gain away from the corner frequency:
+
+  `G_AHM(s) = (s^2 + (2*pi*fc)^2) / (s^2 + 2*zeta*(2*pi*fc)*s + (2*pi*fc)^2)`
+
+  with the corner frequency fc set to 150 Hz (50 Hz supply) or 180 Hz (60 Hz supply).
+- **Charging method:** CC-CV, with CC charging independent of the battery voltage and CV charging used across the 48-450 V range.
+
+### PI controller transfer functions
+
+| Controller | Transfer function |
+|---|---|
+| Outer current (CC) | 0.81 + 5.67 / s |
+| Outer voltage (CV) | 0.257 + 41.1134 / s |
+| Inner boost current | 0.06578 + 83.3184 / s |
+| Inner buck current | 0.357 + 456.74 / s |
+
+## Simulation
+
+Simulation conditions follow the reference paper: universal AC supply (85-264 V RMS, 50/60 Hz), with a 110 V, 60 Hz input for the plotted cases.
+
+| Case | Description |
+|---|---|
+| CC charging | Battery charged at a constant 10 A |
+| CV charging | Battery held at a constant 400 V |
+| Wide output range | Output stepped across the 48-450 V range to check regulation and mode transitions |
+
+In each case the signals to check are the input voltage, input current, output (battery) voltage and output current. The input current should be sinusoidal and in phase with the input voltage (unity power factor), and the output should stay regulated at its reference.
 
 ## Repository Structure
 
@@ -65,15 +117,9 @@ The converter is modelled in two environments:
 - LTspice
 - MATLAB / Simulink
 
-## Team
-
-- Devansh Sharma
-- Aditya R. Shinde
-- Vineet Pal
-
 ## Reference
 
-S. Karneddi and D. Ronanki, "Universal Bridgeless Nonisolated Battery Charger with Wide Output Voltage Range," *IEEE Transactions on Power Electronics*, 2023.
+H. Karneddi and D. Ronanki, "Universal Bridgeless Nonisolated Battery Charger With Wide-Output Voltage Range," *IEEE Transactions on Power Electronics*, vol. 38, no. 3, pp. 2816-2820, March 2023.
 
 ## License
 
