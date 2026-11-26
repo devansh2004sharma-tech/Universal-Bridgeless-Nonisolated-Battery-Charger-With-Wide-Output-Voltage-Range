@@ -1,6 +1,6 @@
 # Universal Bridgeless Nonisolated Battery Charger with Wide Output Voltage Range
 
-LTspice and MATLAB/Simulink simulation of a 1.5 kW universal bridgeless nonisolated battery charger for EV on-board charging, with a dual-loop CC-CV controller.
+Open-loop LTspice and closed-loop MATLAB/Simulink simulation of a 1.5 kW universal bridgeless nonisolated battery charger for EV on-board charging, with a dual-loop CC-CV controller.
 
 Based on: S. Karneddi and D. Ronanki, *Universal Bridgeless Nonisolated Battery Charger with Wide Output Voltage Range*, IEEE Transactions on Power Electronics, 2023.
 
@@ -16,7 +16,10 @@ Battery chargers for electric vehicles must accept a wide range of grid voltages
 - Switching frequency of 40 kHz
 - Constant-current / constant-voltage (CC-CV) charging using a dual-loop controller with an AHM filter
 
-The converter is modelled and verified in both LTspice (circuit-level) and MATLAB/Simulink (system-level with controller).
+The converter is modelled in two environments:
+
+- **LTspice:** open-loop circuit model of the power stage, used to study the converter's switching behaviour and waveforms without a controller.
+- **MATLAB/Simulink:** the complete closed-loop model of the charger, including the dual-loop CC-CV controller with AHM filter, for regulated charging operation.
 
 ## Design Specifications
 
@@ -34,9 +37,9 @@ The converter is modelled and verified in both LTspice (circuit-level) and MATLA
 ```
 .
 ├── ltspice/
-│   └── projectendetret.asc      # LTspice schematic of the charger
+│   └── projectendetret.asc      # LTspice open-loop circuit of the charger
 ├── simulink/
-│   └── UC2_fixed.slx            # MATLAB/Simulink model with CC-CV controller
+│   └── UC2_fixed.slx            # Simulink closed-loop model with CC-CV controller
 ├── results/                     # Simulation plots (see Results)
 ├── docs/                        # Reference paper notes, design calculations
 └── README.md
@@ -49,19 +52,19 @@ The converter is modelled and verified in both LTspice (circuit-level) and MATLA
 
 ## How to Run
 
-**LTspice**
+**LTspice (open loop)**
 1. Open `ltspice/projectendetret.asc` in LTspice.
-2. Run the transient simulation as configured in the schematic.
+2. Run the transient simulation as configured in the schematic. The circuit runs open loop, with no controller.
 3. Probe the input voltage/current and output voltage/current nodes to view the waveforms.
 
-**MATLAB/Simulink**
+**MATLAB/Simulink (closed loop)**
 1. Open MATLAB and navigate to the `simulink/` folder.
-2. Open `UC2_fixed.slx`.
+2. Open `UC2_fixed.slx`. This is the full circuit with the dual-loop CC-CV controller.
 3. Run the model and open the scopes to view input voltage, input current, output voltage and output current.
 
 ## Results
 
-Simulation waveforms from the Simulink and LTspice models:
+Simulation waveforms from the closed-loop Simulink model and the open-loop LTspice model:
 
 | Waveform | Plot |
 |---|---|
